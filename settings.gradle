@@ -1,0 +1,2 @@
+include ':app', ':infrared-release', ':usbserial-6.0.6-debug'
+include ':usbserial'

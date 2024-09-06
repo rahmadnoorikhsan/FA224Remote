@@ -1,0 +1,483 @@
+Index: app/src/main/java/com/litron/litronremote/BantuanActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/litron/litronremote/BantuanActivity.java	(revision 699573b93ee1645ee7dc0ac186c7494c6daf332c)
++++ app/src/main/java/com/litron/litronremote/BantuanActivity.java	(date 1537784387000)
+@@ -5,12 +5,15 @@
+ import android.support.v7.app.AppCompatActivity;
+ import android.support.v7.widget.Toolbar;
+ 
++import com.crashlytics.android.Crashlytics;
++
+ public class BantuanActivity extends AppCompatActivity {
+ 
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_bantuan);
++
+         Toolbar toolbar = findViewById(R.id.toolbar);
+         setSupportActionBar(toolbar);
+         ActionBar actionBar = getSupportActionBar();
+Index: app/src/main/java/com/litron/litronremote/IrController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/litron/litronremote/IrController.java	(revision 699573b93ee1645ee7dc0ac186c7494c6daf332c)
++++ app/src/main/java/com/litron/litronremote/IrController.java	(date 1537785173000)
+@@ -10,6 +10,10 @@
+ import android.util.Log;
+ import android.widget.Toast;
+ 
++import com.crashlytics.android.Crashlytics;
++
++import io.fabric.sdk.android.Fabric;
++
+ public class IrController {
+ 
+     private ConsumerIrManager irService;
+@@ -21,6 +25,8 @@
+ 
+ 
+     IrController(Context context) {
++        Fabric.with(context, new Crashlytics());
++
+         mContext = context;
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+             irService = (ConsumerIrManager) context.getSystemService(Context.CONSUMER_IR_SERVICE);
+@@ -158,6 +164,13 @@
+             int idx = 0;
+             int iSample = 1;
+             for (byte datas : data){
++                for(int k = 0; k < (count/(9*JumlahByte))*4; k += 1){
++//                    Log.e("IDX", "newMethod: a "+getSinus(iSample));
++                    samples[idx] = (byte)0;
++                    samples[idx + 1] = (byte) 0;
++                    iSample++;
++                    idx+=2;
++                }
+                 for(int k = 0; k < count/(9*JumlahByte); k += 1){
+ //                    Log.e("IDX", "newMethod: a "+getSinus(iSample));
+                     samples[idx] = getSinus(iSample);
+Index: app/src/main/java/com/litron/litronremote/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/litron/litronremote/MainActivity.java	(revision 699573b93ee1645ee7dc0ac186c7494c6daf332c)
++++ app/src/main/java/com/litron/litronremote/MainActivity.java	(date 1537785357000)
+@@ -20,6 +20,11 @@
+ import android.widget.Toast;
+ 
+ import com.aigestudio.wheelpicker.WheelPicker;
++import com.crashlytics.android.Crashlytics;
++import com.google.android.gms.ads.AdListener;
++import com.google.android.gms.ads.AdRequest;
++import com.google.android.gms.ads.AdView;
++import com.google.android.gms.ads.MobileAds;
+ import com.suke.widget.SwitchButton;
+ 
+ import java.util.Arrays;
+@@ -30,8 +35,14 @@
+ import butterknife.BindView;
+ import butterknife.ButterKnife;
+ import butterknife.OnClick;
++import io.fabric.sdk.android.Fabric;
+ 
+ public class MainActivity extends AppCompatActivity {
++    private static String ADS_APP_ID = "ca-app-pub-6979523679704477~8016474368";
++    private static String ADS_UNIT_ID = "ca-app-pub-6979523679704477/1079353317";
++
++    private AdView mAdView;
++
+     private static final String TAG = MainActivity.class.getSimpleName();
+     private IrController ir;
+ 
+@@ -127,6 +138,9 @@
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
++
++        Fabric.with(this, new Crashlytics());
++
+         sharedPreferences = getSharedPreferences("LITRONRemote", Context.MODE_PRIVATE);
+ //        initPermission();
+         audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+@@ -135,8 +149,28 @@
+         ir = new IrController(this);
+ 
+         setContentView(R.layout.second_layout);
++
++
++
+         ButterKnife.bind(this);
+ 
++        MobileAds.initialize(this, ADS_APP_ID);
++        mAdView = findViewById(R.id.adView);
++        AdRequest adRequest = new AdRequest.Builder().build();
++        mAdView.loadAd(adRequest);
++        mAdView.setAdListener(new AdListener(){
++            @Override
++            public void onAdFailedToLoad(int i) {
++                Log.d(TAG, "onAdFailedToLoad: ");
++                super.onAdFailedToLoad(i);
++            }
++
++            @Override
++            public void onAdClosed() {
++                Log.d(TAG, "onAdClosed: ");
++                super.onAdClosed();
++            }
++        });
+ 
+         initDataShared();
+     }
+@@ -224,7 +258,7 @@
+             adjustVolume(false);
+             btnKirim.setEnabled(true);
+             btnKirim.setText("SEND");
+-        }, 1000);
++        }, 1500);
+     }
+ 
+     public void showBantuan(){
+Index: app/src/main/res/layout/second_layout.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/second_layout.xml	(revision 699573b93ee1645ee7dc0ac186c7494c6daf332c)
++++ app/src/main/res/layout/second_layout.xml	(date 1537784470000)
+@@ -1,96 +1,118 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<ScrollView xmlns:app="http://schemas.android.com/apk/res-auto"
+-    xmlns:tools="http://schemas.android.com/tools"
+-    android:layout_width="match_parent" android:layout_height="wrap_content"
+-    xmlns:android="http://schemas.android.com/apk/res/android">
+-    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+-        xmlns:app="http://schemas.android.com/apk/res-auto"
+-        xmlns:tools="http://schemas.android.com/tools"
+-        android:layout_width="match_parent"
+-        android:layout_height="match_parent"
+-        tools:context=".MainActivity">
++<RelativeLayout xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent" android:layout_height="match_parent"
++    xmlns:android="http://schemas.android.com/apk/res/android">
++
++    <ScrollView xmlns:app="http://schemas.android.com/apk/res-auto"
++        xmlns:tools="http://schemas.android.com/tools"
++        android:layout_width="match_parent" android:layout_height="match_parent"
++        xmlns:android="http://schemas.android.com/apk/res/android">
++        <RelativeLayout
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content">
++
++            <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
++                android:layout_alignParentTop="true"
++                xmlns:app="http://schemas.android.com/apk/res-auto"
++                xmlns:tools="http://schemas.android.com/tools"
++                android:layout_width="match_parent"
++                android:layout_height="match_parent"
++                tools:context=".MainActivity">
+ 
+-        <ImageView
+-            android:id="@+id/imageView"
+-            android:layout_width="200dp"
+-            android:layout_height="75dp"
+-            android:layout_marginEnd="8dp"
+-            android:layout_marginLeft="8dp"
+-            android:layout_marginRight="8dp"
+-            android:layout_marginStart="8dp"
+-            android:layout_marginTop="32dp"
+-            android:visibility="gone"
+-            app:layout_constraintEnd_toEndOf="parent"
+-            app:layout_constraintStart_toStartOf="parent"
+-            app:layout_constraintTop_toTopOf="parent"
+-            app:srcCompat="@drawable/ic_wireless"
+-            tools:ignore="VectorDrawableCompat" />
++                <ImageView
++                    android:id="@+id/imageView"
++                    android:layout_width="200dp"
++                    android:layout_height="75dp"
++                    android:layout_marginEnd="8dp"
++                    android:layout_marginLeft="8dp"
++                    android:layout_marginRight="8dp"
++                    android:layout_marginStart="8dp"
++                    android:layout_marginTop="32dp"
++                    android:visibility="gone"
++                    app:layout_constraintEnd_toEndOf="parent"
++                    app:layout_constraintStart_toStartOf="parent"
++                    app:layout_constraintTop_toTopOf="parent"
++                    app:srcCompat="@drawable/ic_wireless"
++                    tools:ignore="VectorDrawableCompat"
++                    android:contentDescription="TODO" />
+ 
+-        <LinearLayout
+-            android:gravity="center"
+-            android:id="@+id/includeLayout"
+-            app:layout_constraintTop_toBottomOf="@id/imageView"
+-            app:layout_constraintLeft_toLeftOf="parent"
+-            app:layout_constraintRight_toRightOf="parent"
+-            android:layout_width="match_parent"
+-            android:layout_height="wrap_content">
+-            <include
+-                android:layout_margin="15dp"
+-                android:id="@+id/etWaktuOn"
+-                layout="@layout/et_waktuon"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:textAlignment="center"
+-                app:layout_constraintStart_toStartOf="parent"
+-                app:layout_constraintTop_toBottomOf="@+id/imageView" />
++                <LinearLayout
++                    android:gravity="center"
++                    android:id="@+id/includeLayout"
++                    app:layout_constraintTop_toBottomOf="@id/imageView"
++                    app:layout_constraintLeft_toLeftOf="parent"
++                    app:layout_constraintRight_toRightOf="parent"
++                    android:layout_width="match_parent"
++                    android:layout_height="wrap_content">
++                    <include
++                        android:layout_margin="15dp"
++                        android:id="@+id/etWaktuOn"
++                        layout="@layout/et_waktuon"
++                        android:layout_width="wrap_content"
++                        android:layout_height="wrap_content"
++                        android:textAlignment="center"
++                        app:layout_constraintStart_toStartOf="parent"
++                        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+ 
+-            <include
+-                android:layout_margin="15dp"
+-                android:id="@+id/etWaktuOff"
+-                layout="@layout/et_waktuoff"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                tools:layout_editor_absoluteY="341dp" />
++                    <include
++                        android:layout_margin="15dp"
++                        android:id="@+id/etWaktuOff"
++                        layout="@layout/et_waktuoff"
++                        android:layout_width="wrap_content"
++                        android:layout_height="wrap_content"
++                        tools:layout_editor_absoluteY="341dp" />
+ 
+-        </LinearLayout>
++                </LinearLayout>
+ 
+ 
+-        <include
+-            app:layout_constraintTop_toBottomOf="@id/includeLayout"
+-            android:id="@+id/include"
+-            layout="@layout/switch_ir"
+-            android:layout_width="0dp"
+-            android:layout_height="wrap_content"
+-            android:layout_marginEnd="8dp"
+-            android:layout_marginLeft="8dp"
+-            android:layout_marginRight="8dp"
+-            android:layout_marginStart="8dp"
+-            app:layout_constraintEnd_toEndOf="parent"
+-            app:layout_constraintStart_toStartOf="parent"
+-            tools:layout_editor_absoluteY="504dp" />
++                <include
++                    app:layout_constraintTop_toBottomOf="@id/includeLayout"
++                    android:id="@+id/include"
++                    layout="@layout/switch_ir"
++                    android:layout_width="0dp"
++                    android:layout_height="wrap_content"
++                    android:layout_marginEnd="8dp"
++                    android:layout_marginLeft="8dp"
++                    android:layout_marginRight="8dp"
++                    android:layout_marginStart="8dp"
++                    app:layout_constraintEnd_toEndOf="parent"
++                    app:layout_constraintStart_toStartOf="parent"
++                    tools:layout_editor_absoluteY="504dp" />
+ 
+-        <android.support.v7.widget.AppCompatButton
+-            android:id="@+id/btnKirim"
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content"
+-            android:layout_marginBottom="8dp"
+-            android:layout_marginEnd="8dp"
+-            android:layout_marginLeft="8dp"
+-            android:layout_marginRight="8dp"
+-            android:layout_marginStart="8dp"
+-            android:layout_marginTop="24dp"
+-            android:text="SEND"
+-            app:layout_constraintBottom_toBottomOf="parent"
+-            app:layout_constraintEnd_toEndOf="parent"
+-            app:layout_constraintStart_toStartOf="parent"
+-            app:layout_constraintTop_toBottomOf="@+id/include" />
++                <android.support.v7.widget.AppCompatButton
++                    android:id="@+id/btnKirim"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:layout_marginBottom="8dp"
++                    android:layout_marginEnd="8dp"
++                    android:layout_marginLeft="8dp"
++                    android:layout_marginRight="8dp"
++                    android:layout_marginStart="8dp"
++                    android:layout_marginTop="24dp"
++                    android:text="SEND"
++                    app:layout_constraintBottom_toBottomOf="parent"
++                    app:layout_constraintEnd_toEndOf="parent"
++                    app:layout_constraintStart_toStartOf="parent"
++                    app:layout_constraintTop_toBottomOf="@+id/include" />
+ 
+-        <android.support.v7.widget.AppCompatButton
+-            android:visibility="gone"
+-            android:id="@+id/testSound"
+-            android:text="Test Button Sound"
+-            android:layout_width="wrap_content"
+-            android:layout_height="wrap_content" />
+-
+-    </android.support.constraint.ConstraintLayout>
+-</ScrollView>
++                <android.support.v7.widget.AppCompatButton
++                    android:visibility="gone"
++                    android:id="@+id/testSound"
++                    android:text="Test Button Sound"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content" />
++            </android.support.constraint.ConstraintLayout>
++        </RelativeLayout>
++    </ScrollView>
++    <com.google.android.gms.ads.AdView
++        xmlns:ads="http://schemas.android.com/apk/res-auto"
++        android:id="@+id/adView"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_centerHorizontal="true"
++        android:layout_alignParentBottom="true"
++        ads:adSize="SMART_BANNER"
++        ads:adUnitId="ca-app-pub-6979523679704477/1079353317">
++    </com.google.android.gms.ads.AdView>
++</RelativeLayout>
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/AndroidManifest.xml	(revision 699573b93ee1645ee7dc0ac186c7494c6daf332c)
++++ app/src/main/AndroidManifest.xml	(date 1537784955000)
+@@ -2,16 +2,14 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+     package="com.litron.litronremote">
++    <uses-permission android:name="android.permission.INTERNET"/>
+     <uses-permission
+         android:name="android.permission.TRANSMIT_IR"
+         android:required="false" />
+-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+     <uses-permission
+         android:name="android.permission.WRITE_SETTINGS"
+         tools:ignore="ProtectedPermissions" />
+-
+     <uses-feature
+         android:name="android.hardware.consumerir"
+         android:required="false" />
+@@ -23,6 +21,13 @@
+         android:roundIcon="@drawable/ic_wireless"
+         android:supportsRtl="true"
+         android:theme="@style/AppTheme">
++
++        <meta-data
++            android:name="com.google.android.gms.ads.APPLICATION_ID"
++            android:value="ca-app-pub-6979523679704477~8016474368"/>
++        <meta-data
++            android:name="firebase_crashlytics_collection_enabled"
++            android:value="false" />
+         <activity
+             android:name=".MainActivity"
+             android:screenOrientation="portrait">
+Index: app/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/build.gradle	(revision 699573b93ee1645ee7dc0ac186c7494c6daf332c)
++++ app/build.gradle	(date 1537784982000)
+@@ -1,4 +1,5 @@
+ apply plugin: 'com.android.application'
++apply plugin: 'io.fabric'
+ 
+ android {
+     signingConfigs {
+@@ -14,8 +15,8 @@
+         applicationId "com.litron.litronremote"
+         minSdkVersion 15
+         targetSdkVersion 27
+-        versionCode 2
+-        versionName "1.1"
++        versionCode 3
++        versionName "1.2"
+         vectorDrawables.useSupportLibrary = true
+         signingConfig signingConfigs.config
+     }
+@@ -43,7 +44,8 @@
+     implementation 'com.github.zcweng:switch-button:0.0.3@aar'
+     implementation 'com.github.davidpizarro:pickerui:1.0.1'
+     implementation 'cn.aigestudio.wheelpicker:WheelPicker:1.1.2'
+-
+-
+-
++    implementation 'com.google.android.gms:play-services-ads:15.0.1'
++    implementation 'com.google.firebase:firebase-core:16.0.3'
++    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.5'
+ }
++apply plugin: 'com.google.gms.google-services'
+\ No newline at end of file
+Index: build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- build.gradle	(revision 699573b93ee1645ee7dc0ac186c7494c6daf332c)
++++ build.gradle	(date 1537783299000)
+@@ -5,11 +5,14 @@
+     repositories {
+         google()
+         jcenter()
++        maven {
++            url 'https://maven.fabric.io/public'
++        }
+     }
+     dependencies {
+-        classpath 'com.android.tools.build:gradle:3.1.3'
+-        
+-
++        classpath 'com.android.tools.build:gradle:3.1.4'
++        classpath 'com.google.gms:google-services:4.0.1'
++        classpath 'io.fabric.tools:gradle:1.25.4'
+         // NOTE: Do not place your application dependencies here; they belong
+         // in the individual module build.gradle files
+     }
+@@ -19,6 +22,9 @@
+     repositories {
+         google()
+         jcenter()
++        maven {
++            url 'https://maven.fabric.io/public'
++        }
+     }
+ }
+ 
+diff --git .idea/caches/build_file_checksums.ser .idea/caches/build_file_checksums.ser
+index 42f8b0a56a192454d8f324b1c9d82062469efffa..32fd9b5392076ba78ebf6cca38b92d7ba63d8f79
+GIT binary patch
+literal 528
+zc${1FmVvdnh`~NNKUXg?FQq6yGexf?KR>5fFEb@IQ7^qHF(oHeub?PDD>b=9F91S2
+zm1gFoxMk*~I%lLNXBU^|7Q2L-Ts|(GuF1r}<i#MFTj`TnT;dMa8(f)}9Fm!vT3nKt
+zTj0aMpIeEdv4nx&Co8cmQNOe#Ge_SyvB0{bfPsNAjay;!MWDL`L2`N^IX#cW;tZfX
+zEBmd3hs6>uGBYr_F>vMNC#JY1CYR(Fc`|U8WE7<qXXNLkR20}dFn|D0IR}sw0Ae<v
+zMa8KlC7F5Y#ZX_B7BMhIJFWRF{)3Gp<N*@{1IT6ufr@<@(c9)lJ46_4mD1PMSysXz
+zuV0j(U!o7yrjH1dg4Cjt%+%u2LWVj9Hjv&cvOPEZ88)%JY~Y;n=7&>V2?I|OD6C*M
+z!WA;_lAPaIyiID$R_o%DK>w5y27#RX<is4Truv1&^#4=qm$F)aV%py~D|Jd31o5~*
+vV0T%-`L~)sELJ%jEcle94>UTlpg<qHJH+q&=P#|4Ri0iPF*zqesH6e_996Z9
+

@@ -1,0 +1,5 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('usbserial-6.0.6-debug.aar'))
+dependencies {
+//    implementation 'com.squareup.okio:okio:2.1.0'
+}

@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-
+apply plugin: 'maven-publish'
 android {
     compileSdkVersion 32
     defaultConfig {
@@ -11,6 +11,19 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     namespace 'dev.mhandharbeni.usbserial'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.rahmadnoorikhsan'
+                artifactId = 'usbserial'
+                version = '1.0.0'
+            }
+        }
+    }
 }
 
 dependencies {

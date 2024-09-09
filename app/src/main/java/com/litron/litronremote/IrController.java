@@ -74,7 +74,6 @@ public class IrController {
 
         int bufSize;
         int[] p = new int[]{3333,3333,3333,3333,3333,3333,3333,3333,3333};
-//        int cf = 100000;
         int cf = 1000;
 
         byte[] pAudio = new byte[8000 * 9];
@@ -89,6 +88,7 @@ public class IrController {
         this.irAudioTrack.setStereoVolume(1000.0f, 1000.0f);
         this.irAudioTrack.play();
     }
+
     private int msToAudio(int cf, int[] signals, byte[] outptr, byte[] datas) {
         int j = 0;
         for (byte dt : datas){
@@ -122,11 +122,8 @@ public class IrController {
                     } else {
                         out = 128;
                     }
-//                    j = j2 + 1;
                     outptr[j2] = (byte) out;
-//                    j2++;
                     j2 = j + 1;
-//                    outptr[j] = (byte) (256 - out);
                     carrierPosRad += carrierStepRad;
                 }
                 i++;
@@ -140,11 +137,8 @@ public class IrController {
                      currentSignal = (int) (((double) currentSignal) - 20.833333333333332d)) {
                     int out;
                     out = 128;
-//                    j = j2 + 1;
                     outptr[j2] = (byte) out;
-//                    j2++;
                     j2 = j + 1;
-//                    outptr[j] = (byte) (256 - out);
                     carrierPosRad += carrierStepRad;
                 }
                 i++;
@@ -211,14 +205,6 @@ public class IrController {
             AudioTrack track = new AudioTrack(AudioManager.STREAM_MUSIC, SampleRate,
                     AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT,
                     count, AudioTrack.MODE_STATIC);
-
-//            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-//                VolumeShaper.Configuration config =
-//                        new VolumeShaper.Configuration.Builder()
-//                                .setInterpolatorType(VolumeShaper.Configuration.INTERPOLATOR_TYPE_LINEAR)
-//                                .build();
-//                track.createVolumeShaper(config);
-//            }
 
             track.write(samples, 0, count);
             track.play();

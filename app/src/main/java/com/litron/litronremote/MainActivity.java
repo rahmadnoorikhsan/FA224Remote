@@ -196,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
         editor.putInt(LabelPutarLayar, putarLayar);
         editor.apply();
     }
+
     private int getPutarLayar(){
         return sharedPreferences.getInt(LabelPutarLayar, 0);
     }
